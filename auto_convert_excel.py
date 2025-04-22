@@ -68,8 +68,11 @@ def convert_excel_file(input_path: str, output_path: str):
     df["후크"] = (df["동영상 3초 이상 재생"] / df["동영상 재생"]).round(4)
     df["지속"] = (df["동영상 100% 재생"] / df["동영상 3초 이상 재생"]).round(4)
 
-    # 5. 광고비 높은 순으로 정렬
-    df = df.sort_values(by="광고비", ascending=False)
+    # 5. 상태와 광고비로 정렬 (ON이 먼저, 각 상태 내에서 광고비 높은 순)
+    # 상태를 기준으로 정렬할 때 ON이 먼저 오도록 정렬 키 설정
+    df['정렬키'] = df['상태'].map({'ON': 0, 'OFF': 1})
+    df = df.sort_values(by=['정렬키', '광고비'], ascending=[True, False])
+    df = df.drop('정렬키', axis=1)  # 정렬 후 임시 컬럼 제거
 
     # 6. 컬럼 순서 정리
     columns = ["상태", "보고 시작", "보고 종료", "제목", "광고비", "매출", "ROAS", "CPC", "CVR", "CTR", "후크", "지속", "클릭", "구매", "평균객단가"]
@@ -109,10 +112,16 @@ def convert_excel_file(input_path: str, output_path: str):
         # 상태 변환 및 색상 적용 (A열부터 F열까지)
         try:
             status_value = ws.cell(r, col_idx["상태"]).value
+            roas_value = ws.cell(r, col_idx["ROAS"]).value
+            
+            # ON 상태에서 ROAS가 2.0 이하이거나 없는 경우 빨간색, 그 외 ON은 파란색, OFF는 회색
             if status_value == "ON":
-                status_color = PatternFill(start_color='CCE5FF', end_color='CCE5FF', fill_type='solid')  # 파란색
+                if roas_value is None or roas_value <= 2.0:
+                    status_color = PatternFill(start_color='F8D7DA', end_color='F8D7DA', fill_type='solid')  # 빨간색
+                else:
+                    status_color = PatternFill(start_color='CCE5FF', end_color='CCE5FF', fill_type='solid')  # 파란색
             elif status_value == "OFF":
-                status_color = PatternFill(start_color='E9ECEF', end_color='E9ECEF', fill_type='solid')  # 회색
+                status_color = PatternFill(start_color='A6B2BE', end_color='A6B2BE', fill_type='solid')  # 회색
             
             # 상태부터 매출까지의 열에 색상 적용
             for col_letter in ['A', 'B', 'C', 'D', 'E', 'F']:  # 상태, 보고시작, 보고종료, 제목, 광고비, 매출
