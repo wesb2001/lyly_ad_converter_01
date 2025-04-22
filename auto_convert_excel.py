@@ -112,7 +112,7 @@ def convert_excel_file(input_path: str, output_path: str):
             if status_value == "ON":
                 status_color = PatternFill(start_color='CCE5FF', end_color='CCE5FF', fill_type='solid')  # 파란색
             elif status_value == "OFF":
-                status_color = PatternFill(start_color='F8D7DA', end_color='F8D7DA', fill_type='solid')  # 빨간색
+                status_color = PatternFill(start_color='E9ECEF', end_color='E9ECEF', fill_type='solid')  # 회색
             
             # 상태부터 매출까지의 열에 색상 적용
             for col_letter in ['A', 'B', 'C', 'D', 'E', 'F']:  # 상태, 보고시작, 보고종료, 제목, 광고비, 매출
